@@ -1,1 +1,1 @@
-Day 1: I got the basics up and running. The player, AI, and ball design are all being planned.
+Day 1: I got the basics up and running. I made the buttons respond to the player properly. It was fun seeing the player finally move.
