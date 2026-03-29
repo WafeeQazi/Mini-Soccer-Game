@@ -35,8 +35,8 @@ let ball = {
     x: 300,
     y: 200,
     radius: 10,
-    vx: 0,
-    vy: 0
+    vx: 2,
+    vy: 1
 };
 
 let keys = {};
@@ -49,6 +49,15 @@ function movePlayer(){
     if(keys["ArrowDown"]) player.y += player.speed;
     if(keys["ArrowLeft"]) player.x -= player.speed;
     if(keys["ArrowRight"]) player.x += player.speed;
+}
+
+function moveBall(){
+    ball.x += ball.vx;
+    ball.y += ball.vy;
+
+    // simple friction
+    ball.vx *= 0.98;
+    ball.vy *= 0.98;
 }
 
 function drawField(){
@@ -73,6 +82,7 @@ function drawBall(){
 function gameLoop(){
     drawField();
     movePlayer();
+    moveBall();
     drawPlayer();
     drawBall();
     requestAnimationFrame(gameLoop);
