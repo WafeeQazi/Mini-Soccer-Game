@@ -30,6 +30,15 @@ let player = {
     speed: 4
 };
 
+// ball
+let ball = {
+    x: 300,
+    y: 200,
+    radius: 10,
+    vx: 0,
+    vy: 0
+};
+
 let keys = {};
 
 document.addEventListener("keydown", e => keys[e.key] = true);
@@ -54,10 +63,18 @@ function drawPlayer(){
     ctx.fill();
 }
 
+function drawBall(){
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+    ctx.fillStyle = "white";
+    ctx.fill();
+}
+
 function gameLoop(){
     drawField();
     movePlayer();
     drawPlayer();
+    drawBall();
     requestAnimationFrame(gameLoop);
 }
 
