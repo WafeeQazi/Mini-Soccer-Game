@@ -3,15 +3,8 @@
 <head>
 <title>Soccer Game</title>
 <style>
-body {
-    margin: 0;
-    background: green;
-}
-canvas {
-    display: block;
-    margin: auto;
-    background: #228B22;
-}
+body { margin:0; background:green; }
+canvas { display:block; margin:auto; background:#228B22; }
 </style>
 </head>
 <body>
@@ -23,26 +16,14 @@ const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
 // player
-let player = {
-    x: 100,
-    y: 200,
-    radius: 15,
-    speed: 4
-};
+let player = { x:100, y:200, radius:15, speed:4 };
 
 // ball
-let ball = {
-    x: 300,
-    y: 200,
-    radius: 10,
-    vx: 2,
-    vy: 1
-};
+let ball = { x:300, y:200, radius:10, vx:2, vy:1 };
 
 let keys = {};
-
-document.addEventListener("keydown", e => keys[e.key] = true);
-document.addEventListener("keyup", e => keys[e.key] = false);
+document.addEventListener("keydown", e => keys[e.key]=true);
+document.addEventListener("keyup", e => keys[e.key]=false);
 
 function movePlayer(){
     if(keys["ArrowUp"]) player.y -= player.speed;
@@ -54,28 +35,39 @@ function movePlayer(){
 function moveBall(){
     ball.x += ball.vx;
     ball.y += ball.vy;
-
-    // simple friction
     ball.vx *= 0.98;
     ball.vy *= 0.98;
 }
 
+// player hits ball
+function playerBallCollision(){
+    let dx = ball.x - player.x;
+    let dy = ball.y - player.y;
+    let dist = Math.sqrt(dx*dx + dy*dy);
+
+    if(dist < player.radius + ball.radius){
+        let angle = Math.atan2(dy, dx);
+        ball.vx += Math.cos(angle)*3;
+        ball.vy += Math.sin(angle)*3;
+    }
+}
+
 function drawField(){
-    ctx.fillStyle = "#228B22";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle="#228B22";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
 }
 
 function drawPlayer(){
     ctx.beginPath();
-    ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
-    ctx.fillStyle = "blue";
+    ctx.arc(player.x,player.y,player.radius,0,Math.PI*2);
+    ctx.fillStyle="blue";
     ctx.fill();
 }
 
 function drawBall(){
     ctx.beginPath();
-    ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-    ctx.fillStyle = "white";
+    ctx.arc(ball.x,ball.y,ball.radius,0,Math.PI*2);
+    ctx.fillStyle="white";
     ctx.fill();
 }
 
@@ -83,6 +75,7 @@ function gameLoop(){
     drawField();
     movePlayer();
     moveBall();
+    playerBallCollision();
     drawPlayer();
     drawBall();
     requestAnimationFrame(gameLoop);
