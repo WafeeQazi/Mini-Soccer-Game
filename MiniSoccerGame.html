@@ -15,10 +15,9 @@ canvas { display:block; margin:auto; background:#228B22; }
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// player
 let player = { x:100, y:200, radius:15, speed:4 };
+let ai = { x:500, y:200, radius:15, speed:2 };
 
-// ball
 let ball = { x:300, y:200, radius:10, vx:2, vy:1 };
 
 let keys = {};
@@ -32,6 +31,16 @@ function movePlayer(){
     if(keys["ArrowRight"]) player.x += player.speed;
 }
 
+function moveAI(){
+    let dx = ball.x - ai.x;
+    let dy = ball.y - ai.y;
+    let dist = Math.sqrt(dx*dx + dy*dy);
+    if(dist > 0){
+        ai.x += (dx/dist) * ai.speed;
+        ai.y += (dy/dist) * ai.speed;
+    }
+}
+
 function moveBall(){
     ball.x += ball.vx;
     ball.y += ball.vy;
@@ -39,12 +48,10 @@ function moveBall(){
     ball.vy *= 0.98;
 }
 
-// player hits ball
 function playerBallCollision(){
     let dx = ball.x - player.x;
     let dy = ball.y - player.y;
     let dist = Math.sqrt(dx*dx + dy*dy);
-
     if(dist < player.radius + ball.radius){
         let angle = Math.atan2(dy, dx);
         ball.vx += Math.cos(angle)*3;
@@ -57,27 +64,22 @@ function drawField(){
     ctx.fillRect(0,0,canvas.width,canvas.height);
 }
 
-function drawPlayer(){
+function drawCircle(obj,color){
     ctx.beginPath();
-    ctx.arc(player.x,player.y,player.radius,0,Math.PI*2);
-    ctx.fillStyle="blue";
-    ctx.fill();
-}
-
-function drawBall(){
-    ctx.beginPath();
-    ctx.arc(ball.x,ball.y,ball.radius,0,Math.PI*2);
-    ctx.fillStyle="white";
+    ctx.arc(obj.x,obj.y,obj.radius,0,Math.PI*2);
+    ctx.fillStyle=color;
     ctx.fill();
 }
 
 function gameLoop(){
     drawField();
     movePlayer();
+    moveAI();
     moveBall();
     playerBallCollision();
-    drawPlayer();
-    drawBall();
+    drawCircle(player,"blue");
+    drawCircle(ai,"red");
+    drawCircle(ball,"white");
     requestAnimationFrame(gameLoop);
 }
 
