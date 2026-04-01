@@ -59,6 +59,17 @@ function playerBallCollision(){
     }
 }
 
+function aiBallCollision(){
+    let dx = ball.x - ai.x;
+    let dy = ball.y - ai.y;
+    let dist = Math.sqrt(dx*dx + dy*dy);
+    if(dist < ai.radius + ball.radius){
+        let angle = Math.atan2(dy, dx);
+        ball.vx += Math.cos(angle)*3;
+        ball.vy += Math.sin(angle)*3;
+    }
+}
+
 function drawField(){
     ctx.fillStyle="#228B22";
     ctx.fillRect(0,0,canvas.width,canvas.height);
@@ -77,6 +88,7 @@ function gameLoop(){
     moveAI();
     moveBall();
     playerBallCollision();
+    aiBallCollision();
     drawCircle(player,"blue");
     drawCircle(ai,"red");
     drawCircle(ball,"white");
