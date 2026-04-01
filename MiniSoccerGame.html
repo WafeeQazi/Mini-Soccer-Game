@@ -20,6 +20,8 @@ let ai = { x:500, y:200, radius:15, speed:2 };
 
 let ball = { x:300, y:200, radius:10, vx:2, vy:1 };
 
+let score = { player:0, ai:0 };
+
 let keys = {};
 document.addEventListener("keydown", e => keys[e.key]=true);
 document.addEventListener("keyup", e => keys[e.key]=false);
@@ -70,6 +72,24 @@ function aiBallCollision(){
     }
 }
 
+function checkGoal(){
+    if(ball.x < 0){
+        score.ai++;
+        reset();
+    }
+    if(ball.x > canvas.width){
+        score.player++;
+        reset();
+    }
+}
+
+function reset(){
+    player.x=100; player.y=200;
+    ai.x=500; ai.y=200;
+    ball.x=300; ball.y=200;
+    ball.vx=0; ball.vy=0;
+}
+
 function drawField(){
     ctx.fillStyle="#228B22";
     ctx.fillRect(0,0,canvas.width,canvas.height);
@@ -89,6 +109,7 @@ function gameLoop(){
     moveBall();
     playerBallCollision();
     aiBallCollision();
+    checkGoal();
     drawCircle(player,"blue");
     drawCircle(ai,"red");
     drawCircle(ball,"white");
