@@ -3,3 +3,5 @@ Day 1: I got the basics up and running. I made the buttons respond to the player
 Day 2: I got the ball to move. It isn't done yet, but I have an idea for how it should interact with the player and AI.
 
 Day 3: I got the player and ball to interact, and now players can push the ball around.
+
+Day 4: I made an AI opponent which can push the ball around. It can’t aim just yet, but it is able to “dribble” the ball.
