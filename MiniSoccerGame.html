@@ -50,9 +50,14 @@ function movePlayer(){
 
 function moveAI(){
     if(kickoff) return;
-    let dx = ball.x - ai.x;
-    let dy = ball.y - ai.y;
+
+    let targetX = ball.x;
+    let targetY = ball.y + (Math.random() - 0.5) * 40;
+
+    let dx = targetX - ai.x;
+    let dy = targetY - ai.y;
     let dist = Math.sqrt(dx*dx + dy*dy);
+
     if(dist > 0){
         ai.x += (dx/dist) * ai.speed;
         ai.y += (dy/dist) * ai.speed;
