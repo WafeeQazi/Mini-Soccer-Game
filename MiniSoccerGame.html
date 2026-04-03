@@ -135,6 +135,15 @@ function reset(){
 function drawField(){
     ctx.fillStyle="#228B22";
     ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    // center line
+    ctx.strokeStyle="white";
+    ctx.setLineDash([10,10]);
+    ctx.beginPath();
+    ctx.moveTo(canvas.width/2,0);
+    ctx.lineTo(canvas.width/2,canvas.height);
+    ctx.stroke();
+    ctx.setLineDash([]);
 }
 
 function drawCircle(obj,color){
