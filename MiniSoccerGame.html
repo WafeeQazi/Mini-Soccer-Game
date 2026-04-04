@@ -3,45 +3,58 @@
 <head>
 <title>Soccer Game</title>
 <style>
-body { margin:0; background:green; text-align:center; color:white; font-family:sans-serif; }
-canvas { display:block; margin:auto; background:#228B22; }
+body {
+    margin:0;
+    background:green;
+    text-align:center;
+    color:white;
+    font-family:sans-serif;
+}
+canvas {
+    display:block;
+    margin:auto;
+    background:#228B22;
+}
+#score {
+    font-size:20px;
+    margin-top:10px;
+}
+button {
+    margin-top:10px;
+    padding:8px 15px;
+}
 </style>
 </head>
 <body>
 
-<h2 id="timer">Time: 60</h2>
-<h2 id="kickoff"></h2>
+<div id="score">Player: 0 | AI: 0</div>
+<button id="restart">Restart</button>
+
 <canvas id="gameCanvas" width="600" height="400"></canvas>
 
 <script>
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
-const timerText = document.getElementById("timer");
-const kickoffText = document.getElementById("kickoff");
+const scoreText = document.getElementById("score");
+const restartBtn = document.getElementById("restart");
 
-let player = { x:100, y:200, radius:15, speed:4 };
-let ai = { x:500, y:200, radius:15, speed:2 };
-let ball = { x:300, y:200, radius:10, vx:2, vy:1 };
+let player = { x:100, y:200, r:15, speed:4 };
+let ai = { x:500, y:200, r:15, speed:2 };
+let ball = { x:300, y:200, r:10, vx:0, vy:0 };
 
 let score = { player:0, ai:0 };
-let timeLeft = 60;
 
-let kickoff = false;
-let kickoffTimer = 0;
-
-setInterval(()=>{
-    if(timeLeft > 0 && !kickoff){
-        timeLeft--;
-        timerText.textContent = "Time: " + timeLeft;
-    }
-},1000);
+restartBtn.onclick = ()=>{
+    score.player = 0;
+    score.ai = 0;
+    reset();
+};
 
 let keys = {};
-document.addEventListener("keydown", e => keys[e.key]=true);
-document.addEventListener("keyup", e => keys[e.key]=false);
+document.addEventListener("keydown", e=>keys[e.key]=true);
+document.addEventListener("keyup", e=>keys[e.key]=false);
 
 function movePlayer(){
-    if(kickoff) return;
     if(keys["ArrowUp"]) player.y -= player.speed;
     if(keys["ArrowDown"]) player.y += player.speed;
     if(keys["ArrowLeft"]) player.x -= player.speed;
@@ -49,80 +62,43 @@ function movePlayer(){
 }
 
 function moveAI(){
-    if(kickoff) return;
-
-    let targetX = ball.x;
-    let targetY = ball.y + (Math.random() - 0.5) * 40;
-
-    let dx = targetX - ai.x;
-    let dy = targetY - ai.y;
-    let dist = Math.sqrt(dx*dx + dy*dy);
-
-    if(dist > 0){
-        ai.x += (dx/dist) * ai.speed;
-        ai.y += (dy/dist) * ai.speed;
+    let dx = ball.x - ai.x;
+    let dy = ball.y - ai.y;
+    let d = Math.sqrt(dx*dx+dy*dy);
+    if(d>0){
+        ai.x += dx/d * ai.speed;
+        ai.y += dy/d * ai.speed;
     }
 }
 
 function moveBall(){
-    if(kickoff) return;
     ball.x += ball.vx;
     ball.y += ball.vy;
-    ball.vx *= 0.98;
-    ball.vy *= 0.98;
+    ball.vx *= 0.96;
+    ball.vy *= 0.96;
 }
 
-function playerBallCollision(){
-    if(kickoff) return;
-    let dx = ball.x - player.x;
-    let dy = ball.y - player.y;
-    let dist = Math.sqrt(dx*dx + dy*dy);
-    if(dist < player.radius + ball.radius){
-        let angle = Math.atan2(dy, dx);
-        ball.vx += Math.cos(angle)*3;
-        ball.vy += Math.sin(angle)*3;
+function collide(p){
+    let dx = ball.x - p.x;
+    let dy = ball.y - p.y;
+    let d = Math.sqrt(dx*dx+dy*dy);
+    if(d < p.r + ball.r){
+        let a = Math.atan2(dy,dx);
+        ball.vx += Math.cos(a)*3;
+        ball.vy += Math.sin(a)*3;
     }
-}
-
-function aiBallCollision(){
-    if(kickoff) return;
-    let dx = ball.x - ai.x;
-    let dy = ball.y - ai.y;
-    let dist = Math.sqrt(dx*dx + dy*dy);
-    if(dist < ai.radius + ball.radius){
-        let angle = Math.atan2(dy, dx);
-        ball.vx += Math.cos(angle)*3;
-        ball.vy += Math.sin(angle)*3;
-    }
-}
-
-function startKickoff(){
-    kickoff = true;
-    kickoffTimer = 3;
-    kickoffText.textContent = "Kickoff in " + kickoffTimer;
-
-    let interval = setInterval(()=>{
-        kickoffTimer--;
-        kickoffText.textContent = "Kickoff in " + kickoffTimer;
-        if(kickoffTimer <= 0){
-            kickoff = false;
-            kickoffText.textContent = "";
-            clearInterval(interval);
-        }
-    },1000);
 }
 
 function checkGoal(){
     if(ball.x < 0){
         score.ai++;
         reset();
-        startKickoff();
     }
     if(ball.x > canvas.width){
         score.player++;
         reset();
-        startKickoff();
     }
+    scoreText.textContent = `Player: ${score.player} | AI: ${score.ai}`;
 }
 
 function reset(){
@@ -132,43 +108,34 @@ function reset(){
     ball.vx=0; ball.vy=0;
 }
 
-function drawField(){
-    ctx.fillStyle="#228B22";
-    ctx.fillRect(0,0,canvas.width,canvas.height);
-
-    // center line
-    ctx.strokeStyle="white";
-    ctx.setLineDash([10,10]);
+function drawCircle(o,c){
     ctx.beginPath();
-    ctx.moveTo(canvas.width/2,0);
-    ctx.lineTo(canvas.width/2,canvas.height);
-    ctx.stroke();
-    ctx.setLineDash([]);
-}
-
-function drawCircle(obj,color){
-    ctx.beginPath();
-    ctx.arc(obj.x,obj.y,obj.radius,0,Math.PI*2);
-    ctx.fillStyle=color;
+    ctx.arc(o.x,o.y,o.r,0,Math.PI*2);
+    ctx.fillStyle=c;
     ctx.fill();
 }
 
-function gameLoop(){
-    drawField();
-    movePlayer();
-    moveAI();
-    moveBall();
-    playerBallCollision();
-    aiBallCollision();
-    checkGoal();
+function draw(){
+    ctx.fillStyle="#228B22";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
     drawCircle(player,"blue");
     drawCircle(ai,"red");
     drawCircle(ball,"white");
-    requestAnimationFrame(gameLoop);
 }
 
-gameLoop();
-</script>
+function loop(){
+    movePlayer();
+    moveAI();
+    moveBall();
+    collide(player);
+    collide(ai);
+    checkGoal();
+    draw();
+    requestAnimationFrame(loop);
+}
 
+loop();
+</script>
 </body>
 </html>
