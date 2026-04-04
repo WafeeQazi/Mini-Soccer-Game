@@ -11,3 +11,5 @@ Day 5:  I added a scoring system through which the player and opponent can score
 Day 6: I added a 60 second timer for each game. The kickoff system is much better too, and now gives the player 3 seconds before each kickoff to think and strategize.
 
 Day 7: The AI got smarter! I updated the AI so that it doesn't go in a straight line, and its direction of kicking varies. It is still very simple and easy to beat, so I’m planning on how I can make it better. A halfway line was also added.
+
+Day 8: I fixed some bugs where players or the ball would end up in the corner, along with making the AI’s kicks a bit stronger, so that it can kick farther. There seem to be a lot of new bugs though, so I will have to fix those as well.
