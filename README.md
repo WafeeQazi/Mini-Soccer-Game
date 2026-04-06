@@ -13,3 +13,5 @@ Day 6: I added a 60 second timer for each game. The kickoff system is much bette
 Day 7: The AI got smarter! I updated the AI so that it doesn't go in a straight line, and its direction of kicking varies. It is still very simple and easy to beat, so I’m planning on how I can make it better. A halfway line was also added.
 
 Day 8: I fixed some bugs where players or the ball would end up in the corner, along with making the AI’s kicks a bit stronger, so that it can kick farther. There seem to be a lot of new bugs though, so I will have to fix those as well.
+
+Day 9: I spent a lot of time fixing bugs, then I polished the visuals by adding white borders around the green field, and added a goalpost, along with a halfway line. I adjusted AI targeting to be more precise, towards the goal post. 
