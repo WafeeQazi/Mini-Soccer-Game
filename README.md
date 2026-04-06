@@ -1,4 +1,3 @@
----------------------------------------------------------------------------------------------------------------------------------------
 How to Play
 ---------------------------------------------------------------------------------------------------------------------------------------
   1. Move your player with the arrow keys.
@@ -8,7 +7,7 @@ How to Play
   5. The game lasts 60 seconds.
   6. Click Restart Game anytime to play again.
 
----------------------------------------------------------------------------------------------------------------------------------------
+
 Development Progress:
 ---------------------------------------------------------------------------------------------------------------------------------------
 Day 1: I got the basics up and running. I made the buttons respond to the player properly. It was fun seeing the player finally move.
@@ -30,6 +29,10 @@ Day 8: I fixed some bugs where players or the ball would end up in the corner, a
 Day 9: I spent a lot of time fixing bugs, then I polished the visuals by adding white borders around the green field, and added a goalpost, along with a halfway line. I adjusted AI targeting to be more precise, towards the goal post. 
 
 Day 10 (Final Day): Fixed AI push bugs and made everything feel smoother and fairer. I added a little AI target line so you can see what it’s thinking, updated the AI’s kicking pattern, and also created 3 different difficulty modes. You can enjoy a proper challenge now!
+
+
+Game Objects & Functions
+---------------------------------------------------------------------------------------------------------------------------------------
 
 | Object / Function           | Description                                                                                                |
 | --------------------------- | ---------------------------------------------------------------------------------------------------------- |
