@@ -1,123 +1,236 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Soccer Game</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini Soccer Game</title>
 <style>
-body { margin:0; background:green; text-align:center; color:white; font-family:sans-serif; }
-canvas { display:block; margin:auto; background:#228B22; }
-#score { font-size:20px; margin-top:10px; }
-#timer { font-size:18px; }
-button { margin-top:10px; padding:8px 15px; }
+body { margin:0; background:green; display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; font-family:sans-serif; }
+canvas { background:#228B22; border:2px solid #fff; }
+#scoreboard { font-size:24px; color:white; margin-top:10px; }
+#timerDisplay { font-size:20px; color:white; margin-top:5px; }
+#restartButton { margin-top:10px; padding:10px 20px; font-size:16px; cursor:pointer; }
 </style>
 </head>
 <body>
-
-<div id="score">Player: 0 | AI: 0</div>
-<div id="timer">Time: 60</div>
-<button id="restart">Restart</button>
-
-<canvas id="gameCanvas" width="600" height="400"></canvas>
+<div id="scoreboard">Player: 0 | AI: 0</div>
+<div id="timerDisplay">Time: 01:00</div>
+<canvas id="soccerField" width="600" height="400"></canvas>
+<button id="restartButton">Restart Game</button>
 
 <script>
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
-const scoreText = document.getElementById("score");
-const timerText = document.getElementById("timer");
+// Game objects
+const canvas = document.getElementById('soccerField');
+const ctx = canvas.getContext('2d');
+const scoreboard = document.getElementById('scoreboard');
+const timerDisplay = document.getElementById('timerDisplay');
+const restartButton = document.getElementById('restartButton');
 
-let time = 60;
+// Starting positions
+const playerStartPos = { x:50, y:200 };
+const aiStartPos = { x:550, y:200 };
+const ballStartPos = { x:300, y:200 };
 
+// Player & AI objects
+let humanPlayer = {...playerStartPos, radius:15, color:'blue', speed:4};
+let computerAI = {...aiStartPos, radius:15, color:'red', speed:3};
+let soccerBall = {...ballStartPos, radius:10, color:'white', vx:0, vy:0};
+
+// Game state
+let keysPressed = {};
+let scores = { player:0, ai:0 };
+let remainingTime = 60;
+let isGameOver = false;
+let isKickoff = false;
+let kickoffTimer = 0;
+let aiPushCooldown = 0;
+
+// Event listeners
+document.addEventListener('keydown', e => keysPressed[e.key]=true);
+document.addEventListener('keyup', e => keysPressed[e.key]=false);
+
+restartButton.addEventListener('click', ()=>{
+    scores = { player:0, ai:0 };
+    remainingTime = 60;
+    isGameOver = false;
+    isKickoff = false;
+    kickoffTimer = 0;
+    aiPushCooldown = 0;
+    humanPlayer = {...playerStartPos, radius:15, color:'blue', speed:4};
+    computerAI = {...aiStartPos, radius:15, color:'red', speed:3};
+    soccerBall = {...ballStartPos, radius:10, color:'white', vx:0, vy:0};
+    updateScoreAndTimer();
+});
+
+// Utility
+function updateScoreAndTimer(){
+    scoreboard.textContent = `Player: ${scores.player} | AI: ${scores.ai}`;
+    const minutes = String(Math.floor(remainingTime/60)).padStart(2,'0');
+    const seconds = String(remainingTime%60).padStart(2,'0');
+    timerDisplay.textContent = `Time: ${minutes}:${seconds}`;
+}
+
+// Game countdown
 setInterval(()=>{
-    if(time > 0){
-        time--;
-        timerText.textContent = "Time: " + time;
+    if(!isGameOver && !isKickoff){
+        remainingTime--;
+        if(remainingTime<=0){ remainingTime=0; isGameOver=true; }
+        updateScoreAndTimer();
     }
 },1000);
 
-let player = { x:100, y:200, r:15, speed:4 };
-let ai = { x:500, y:200, r:15, speed:2 };
-let ball = { x:300, y:200, r:10, vx:0, vy:0 };
-
-let score = { player:0, ai:0 };
-
-let keys = {};
-document.addEventListener("keydown", e=>keys[e.key]=true);
-document.addEventListener("keyup", e=>keys[e.key]=false);
-
+// Movement functions
 function movePlayer(){
-    if(keys["ArrowUp"]) player.y -= player.speed;
-    if(keys["ArrowDown"]) player.y += player.speed;
-    if(keys["ArrowLeft"]) player.x -= player.speed;
-    if(keys["ArrowRight"]) player.x += player.speed;
+    if(isKickoff || isGameOver) return;
+    if(keysPressed['ArrowUp']) humanPlayer.y -= humanPlayer.speed;
+    if(keysPressed['ArrowDown']) humanPlayer.y += humanPlayer.speed;
+    if(keysPressed['ArrowLeft']) humanPlayer.x -= humanPlayer.speed;
+    if(keysPressed['ArrowRight']) humanPlayer.x += humanPlayer.speed;
+
+    humanPlayer.x = Math.max(humanPlayer.radius, Math.min(canvas.width-humanPlayer.radius, humanPlayer.x));
+    humanPlayer.y = Math.max(humanPlayer.radius, Math.min(canvas.height-humanPlayer.radius, humanPlayer.y));
 }
 
 function moveAI(){
-    let dx = ball.x - ai.x;
-    let dy = ball.y - ai.y;
-    let d = Math.sqrt(dx*dx+dy*dy);
-    if(d>0){
-        ai.x += dx/d * ai.speed;
-        ai.y += dy/d * ai.speed;
+    if(isKickoff || isGameOver) return;
+
+    let dx = soccerBall.x - computerAI.x;
+    let dy = soccerBall.y - computerAI.y;
+    let dist = Math.sqrt(dx*dx + dy*dy);
+    if(dist>1){
+        computerAI.x += dx/dist * computerAI.speed;
+        computerAI.y += dy/dist * computerAI.speed;
     }
+
+    computerAI.x = Math.max(computerAI.radius, Math.min(canvas.width-computerAI.radius, computerAI.x));
+    computerAI.y = Math.max(computerAI.radius, Math.min(canvas.height-computerAI.radius, computerAI.y));
 }
 
 function moveBall(){
-    ball.x += ball.vx;
-    ball.y += ball.vy;
-    ball.vx *= 0.96;
-    ball.vy *= 0.96;
+    if(isKickoff || isGameOver) return;
+    soccerBall.x += soccerBall.vx;
+    soccerBall.y += soccerBall.vy;
+    soccerBall.vx *= 0.95;
+    soccerBall.vy *= 0.95;
+
+    const goalTop = canvas.height/2 - 50;
+    const goalBottom = canvas.height/2 + 50;
+    if(soccerBall.y-soccerBall.radius<0){ soccerBall.y=soccerBall.radius; soccerBall.vy*=-1; }
+    if(soccerBall.y+soccerBall.radius>canvas.height){ soccerBall.y=canvas.height-soccerBall.radius; soccerBall.vy*=-1; }
+    if(soccerBall.x-soccerBall.radius<0 && (soccerBall.y<goalTop || soccerBall.y>goalBottom)){ soccerBall.x=soccerBall.radius; soccerBall.vx*=-1; }
+    if(soccerBall.x+soccerBall.radius>canvas.width && (soccerBall.y<goalTop || soccerBall.y>goalBottom)){ soccerBall.x=canvas.width-soccerBall.radius; soccerBall.vx*=-1; }
 }
 
-function collide(p){
-    let dx = ball.x - p.x;
-    let dy = ball.y - p.y;
-    let d = Math.sqrt(dx*dx+dy*dy);
-    if(d < p.r + ball.r){
-        let a = Math.atan2(dy,dx);
-        ball.vx += Math.cos(a)*3;
-        ball.vy += Math.sin(a)*3;
+// Collision & scoring
+function checkCollision(playerOrAI){
+    if(isKickoff || isGameOver) return;
+    const dx = soccerBall.x-playerOrAI.x;
+    const dy = soccerBall.y-playerOrAI.y;
+    const dist = Math.sqrt(dx*dx+dy*dy);
+
+    if(dist < soccerBall.radius + playerOrAI.radius){
+        let angle = Math.atan2(dy, dx);
+        const force = 3;
+        soccerBall.vx += Math.cos(angle)*force;
+        soccerBall.vy += Math.sin(angle)*force;
+        const overlap = soccerBall.radius + playerOrAI.radius - dist;
+        soccerBall.x += Math.cos(angle)*overlap*0.5;
+        soccerBall.y += Math.sin(angle)*overlap*0.5;
     }
 }
 
 function checkGoal(){
-    if(ball.x < 0){ score.ai++; reset(); }
-    if(ball.x > canvas.width){ score.player++; reset(); }
-    scoreText.textContent = `Player: ${score.player} | AI: ${score.ai}`;
+    if(isGameOver || isKickoff) return;
+    const goalTop = canvas.height/2 - 50;
+    const goalBottom = canvas.height/2 + 50;
+
+    if(soccerBall.x-soccerBall.radius<=0 && soccerBall.y>goalTop && soccerBall.y<goalBottom){
+        scores.ai++;
+        startKickoff();
+    }
+    if(soccerBall.x+soccerBall.radius>=canvas.width && soccerBall.y>goalTop && soccerBall.y<goalBottom){
+        scores.player++;
+        startKickoff();
+    }
+    updateScoreAndTimer();
 }
 
-function reset(){
-    player.x=100; player.y=200;
-    ai.x=500; ai.y=200;
-    ball.x=300; ball.y=200;
-    ball.vx=0; ball.vy=0;
+// Kickoff
+function startKickoff(){
+    isKickoff = true;
+    kickoffTimer = 3;
+    resetPositions();
+    const countdownInterval = setInterval(()=>{
+        kickoffTimer--;
+        if(kickoffTimer<=0){
+            isKickoff = false;
+            clearInterval(countdownInterval);
+        }
+    },1000);
 }
 
-function drawCircle(o,c){
+function resetPositions(){
+    humanPlayer.x=playerStartPos.x; humanPlayer.y=playerStartPos.y;
+    computerAI.x=aiStartPos.x; computerAI.y=aiStartPos.y;
+    soccerBall.x=ballStartPos.x; soccerBall.y=ballStartPos.y;
+    soccerBall.vx=0; soccerBall.vy=0;
+    aiPushCooldown=0;
+}
+
+// Drawing
+function drawCircle(entity, withShadow=false){
+    if(withShadow){
+        ctx.save();
+        ctx.shadowColor = "rgba(0,0,0,0.5)";
+        ctx.shadowBlur = 8;
+    }
     ctx.beginPath();
-    ctx.arc(o.x,o.y,o.r,0,Math.PI*2);
-    ctx.fillStyle=c;
+    ctx.arc(entity.x, entity.y, entity.radius, 0, Math.PI*2);
+    ctx.fillStyle = entity.color;
     ctx.fill();
+    if(withShadow) ctx.restore();
 }
 
 function draw(){
-    ctx.fillStyle="#228B22";
-    ctx.fillRect(0,0,canvas.width,canvas.height);
-    drawCircle(player,"blue");
-    drawCircle(ai,"red");
-    drawCircle(ball,"white");
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    ctx.fillStyle='#fff';
+    ctx.fillRect(0,canvas.height/2-50,10,100);
+    ctx.fillRect(canvas.width-10,canvas.height/2-50,10,100);
+    ctx.strokeStyle='white';
+    ctx.setLineDash([10,10]);
+    ctx.beginPath();
+    ctx.moveTo(canvas.width/2,0);
+    ctx.lineTo(canvas.width/2,canvas.height);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    drawCircle(humanPlayer);
+    drawCircle(computerAI);
+    drawCircle(soccerBall,true);
+
+    if(isKickoff){
+        ctx.fillStyle='white';
+        ctx.font='40px sans-serif';
+        ctx.textAlign='center';
+        ctx.fillText(`Kickoff in ${kickoffTimer}`, canvas.width/2, canvas.height/2);
+    }
 }
 
-function loop(){
+// Game loop
+function gameLoop(){
+    if(aiPushCooldown>0) aiPushCooldown--;
     movePlayer();
     moveAI();
     moveBall();
-    collide(player);
-    collide(ai);
+    checkCollision(humanPlayer);
+    checkCollision(computerAI);
     checkGoal();
     draw();
-    requestAnimationFrame(loop);
+    requestAnimationFrame(gameLoop);
 }
 
-loop();
+gameLoop();
 </script>
 </body>
 </html>
