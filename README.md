@@ -31,28 +31,26 @@ Day 9: I spent a lot of time fixing bugs, then I polished the visuals by adding 
 
 Day 10 (Final Day): Fixed AI push bugs and made everything feel smoother and fairer. I added a little AI target line so you can see what it’s thinking, updated the AI’s kicking pattern, and also created 3 different difficulty modes. You can enjoy a proper challenge now!
 
----------------------------------------------------------------------------------------------------------------------------------------
-Object/Function            | Description
----------------------------------------------------------------------------------------------------------------------------------------
-humanPlayer                | Represents the player controlled by arrow keys. Tracks position, speed, and radius.
-computerAI                 | Opponent AI player. Moves toward the ball and pushes it with cooldown.
-soccerBall                 | Ball object. Tracks position, velocity, radius, and color.
-keysPressed                | Object storing which keys are currently pressed for movement.
-scores                     | Tracks player and AI goals.
-remainingTime              | Game timer in seconds.
-isKickoff                  | Boolean indicating whether a kickoff is in progress.
-kickoffTimer               | Countdown for kickoff in seconds.
-aiPushCooldown             | Prevents AI from continuously pushing the ball every frame.
-currentAIDifficulty        | Difficulty level: easy, medium, hard. Affects AI speed and push randomness.
-updateScoreAndTimer()      | Updates HTML scoreboard and timer display.
-movePlayer()               | Moves player based on arrow keys and keeps inside boundaries.
-moveAI()                   | AI movement logic. Dribbles around the player and approaches the ball.
-moveBall()                 | Updates ball position, applies friction, handles wall collisions.
-checkCollision(obj)        | Handles ball–player/AI collision and “push” physics.
-checkGoal()                | Detects if the ball entered a goal and updates scores, triggers kickoff.
-startKickoff()             | Resets positions and starts a 3-second countdown.
-resetPositions()           | Puts all players and ball back to starting positions.
-drawCircle(obj, shadow)    | Draws a circle (player, AI, or ball) on canvas, optional shadow.
-draw()                     | Handles all visual elements: field lines, kickoff countdown, AI line, ball shadows, Game Over overlay.
-gameLoop()                 | Main animation loop calling all move, collision, and draw functions each frame.
----------------------------------------------------------------------------------------------------------------------------------------
+| Object / Function           | Description                                                                                                |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| **humanPlayer**             | Represents the player controlled by arrow keys. Tracks position, speed, and radius.                        |
+| **computerAI**              | Opponent AI player. Moves toward the ball and pushes it with cooldown.                                     |
+| **soccerBall**              | Ball object. Tracks position, velocity, radius, and color.                                                 |
+| **keysPressed**             | Object storing which keys are currently pressed for movement.                                              |
+| **scores**                  | Tracks player and AI goals.                                                                                |
+| **remainingTime**           | Game timer in seconds.                                                                                     |
+| **isKickoff**               | Boolean indicating whether a kickoff is in progress.                                                       |
+| **kickoffTimer**            | Countdown for kickoff in seconds.                                                                          |
+| **aiPushCooldown**          | Prevents AI from continuously pushing the ball every frame.                                                |
+| **currentAIDifficulty**     | Difficulty level (`easy`, `medium`, `hard`). Affects AI speed and push randomness.                         |
+| **updateScoreAndTimer()**   | Updates HTML scoreboard and timer display.                                                                 |
+| **movePlayer()**            | Moves player based on arrow keys and keeps inside boundaries.                                              |
+| **moveAI()**                | AI movement logic. Dribbles around the player and approaches the ball.                                     |
+| **moveBall()**              | Updates ball position, applies friction, and handles wall collisions.                                      |
+| **checkCollision(obj)**     | Handles ball–player/AI collision and “push” physics.                                                       |
+| **checkGoal()**             | Detects if the ball entered a goal, updates scores, and triggers kickoff.                                  |
+| **startKickoff()**          | Resets positions and starts a 3-second countdown.                                                          |
+| **resetPositions()**        | Puts all players and ball back to starting positions.                                                      |
+| **drawCircle(obj, shadow)** | Draws a circle (player, AI, or ball) on canvas with optional shadow.                                       |
+| **draw()**                  | Handles all visual elements: field lines, kickoff countdown, AI line, ball shadows, and Game Over overlay. |
+| **gameLoop()**              | Main animation loop calling movement, collision, and draw functions each frame.                            |
