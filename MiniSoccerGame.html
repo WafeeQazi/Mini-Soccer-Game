@@ -10,12 +10,18 @@ canvas { background:#228B22; border:2px solid #fff; }
 #scoreboard { font-size:24px; color:white; margin-top:10px; }
 #timerDisplay { font-size:20px; color:white; margin-top:5px; }
 #restartButton { margin-top:10px; padding:10px 20px; font-size:16px; cursor:pointer; }
+#difficultyChooser { margin-top:5px; font-size:16px; padding:5px; }
 </style>
 </head>
 <body>
 <div id="scoreboard">Player: 0 | AI: 0</div>
 <div id="timerDisplay">Time: 01:00</div>
 <canvas id="soccerField" width="600" height="400"></canvas>
+<select id="difficultyChooser">
+  <option value="easy">AI: Easy</option>
+  <option value="medium" selected>AI: Medium</option>
+  <option value="hard">AI: Hard</option>
+</select>
 <button id="restartButton">Restart Game</button>
 
 <script>
@@ -25,6 +31,7 @@ const ctx = canvas.getContext('2d');
 const scoreboard = document.getElementById('scoreboard');
 const timerDisplay = document.getElementById('timerDisplay');
 const restartButton = document.getElementById('restartButton');
+const difficultyChooser = document.getElementById('difficultyChooser');
 
 // Starting positions
 const playerStartPos = { x:50, y:200 };
@@ -44,8 +51,11 @@ let isGameOver = false;
 let isKickoff = false;
 let kickoffTimer = 0;
 let aiPushCooldown = 0;
+let currentAIDifficulty = 'medium';
 
 // Event listeners
+difficultyChooser.addEventListener('change', () => currentAIDifficulty = difficultyChooser.value);
+
 document.addEventListener('keydown', e => keysPressed[e.key]=true);
 document.addEventListener('keyup', e => keysPressed[e.key]=false);
 
@@ -94,12 +104,32 @@ function movePlayer(){
 function moveAI(){
     if(isKickoff || isGameOver) return;
 
-    let dx = soccerBall.x - computerAI.x;
-    let dy = soccerBall.y - computerAI.y;
-    let dist = Math.sqrt(dx*dx + dy*dy);
-    if(dist>1){
-        computerAI.x += dx/dist * computerAI.speed;
-        computerAI.y += dy/dist * computerAI.speed;
+    let aiSpeed = 3;
+    let angleVariance = Math.PI/6;
+    if(currentAIDifficulty==='easy'){ aiSpeed=2; angleVariance=Math.PI/10; }
+    if(currentAIDifficulty==='hard'){ aiSpeed=4; angleVariance=Math.PI/4; }
+    computerAI.speed = aiSpeed;
+
+    // AI basic target calculation
+    const dx = soccerBall.x - computerAI.x;
+    const dy = soccerBall.y - computerAI.y;
+    const pdx = humanPlayer.x - computerAI.x;
+    const pdy = humanPlayer.y - computerAI.y;
+    const playerDist = Math.sqrt(pdx*pdx + pdy*pdy);
+    let targetX = soccerBall.x;
+    let targetY = soccerBall.y;
+
+    // Simple “avoid player” dribble behavior
+    if(playerDist < 80 && Math.abs(soccerBall.y - humanPlayer.y) < 40){
+        targetY += (soccerBall.y < canvas.height/2 ? -50 : 50);
+    }
+
+    const tdx = targetX - computerAI.x;
+    const tdy = targetY - computerAI.y;
+    const tdist = Math.sqrt(tdx*tdx + tdy*tdy);
+    if(tdist>1){
+        computerAI.x += (tdx/tdist)*computerAI.speed;
+        computerAI.y += (tdy/tdist)*computerAI.speed;
     }
 
     computerAI.x = Math.max(computerAI.radius, Math.min(canvas.width-computerAI.radius, computerAI.x));
@@ -115,6 +145,7 @@ function moveBall(){
 
     const goalTop = canvas.height/2 - 50;
     const goalBottom = canvas.height/2 + 50;
+    // Ball bounces off walls
     if(soccerBall.y-soccerBall.radius<0){ soccerBall.y=soccerBall.radius; soccerBall.vy*=-1; }
     if(soccerBall.y+soccerBall.radius>canvas.height){ soccerBall.y=canvas.height-soccerBall.radius; soccerBall.vy*=-1; }
     if(soccerBall.x-soccerBall.radius<0 && (soccerBall.y<goalTop || soccerBall.y>goalBottom)){ soccerBall.x=soccerBall.radius; soccerBall.vx*=-1; }
@@ -129,13 +160,33 @@ function checkCollision(playerOrAI){
     const dist = Math.sqrt(dx*dx+dy*dy);
 
     if(dist < soccerBall.radius + playerOrAI.radius){
-        let angle = Math.atan2(dy, dx);
-        const force = 3;
-        soccerBall.vx += Math.cos(angle)*force;
-        soccerBall.vy += Math.sin(angle)*force;
-        const overlap = soccerBall.radius + playerOrAI.radius - dist;
-        soccerBall.x += Math.cos(angle)*overlap*0.5;
-        soccerBall.y += Math.sin(angle)*overlap*0.5;
+        let allowPush = true;
+        if(playerOrAI===computerAI){
+            const pdx = soccerBall.x-humanPlayer.x;
+            const pdy = soccerBall.y-humanPlayer.y;
+            const playerDist = Math.sqrt(pdx*pdx+pdy*pdy);
+            if(playerDist < dist) allowPush=false;
+            if(aiPushCooldown>0) allowPush=false;
+        }
+        if(allowPush){
+            let angle;
+            const force = 3;
+            if(playerOrAI===computerAI){
+                const goalX = 0;
+                const goalY = canvas.height/2;
+                angle = Math.atan2(goalY-soccerBall.y, goalX-soccerBall.x);
+                let variation = (currentAIDifficulty==='easy'?Math.PI/10:currentAIDifficulty==='hard'?Math.PI/4:Math.PI/6);
+                angle += (Math.random()-0.5)*variation;
+                aiPushCooldown = 5;
+            } else { angle = Math.atan2(dy, dx); }
+
+            soccerBall.vx += Math.cos(angle)*force;
+            soccerBall.vy += Math.sin(angle)*force;
+
+            const overlap = soccerBall.radius + playerOrAI.radius - dist;
+            soccerBall.x += Math.cos(angle)*overlap*0.5;
+            soccerBall.y += Math.sin(angle)*overlap*0.5;
+        }
     }
 }
 
@@ -194,6 +245,7 @@ function drawCircle(entity, withShadow=false){
 function draw(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
 
+    // Field visuals
     ctx.fillStyle='#fff';
     ctx.fillRect(0,canvas.height/2-50,10,100);
     ctx.fillRect(canvas.width-10,canvas.height/2-50,10,100);
@@ -205,6 +257,13 @@ function draw(){
     ctx.stroke();
     ctx.setLineDash([]);
 
+    // AI target line
+    ctx.strokeStyle='rgba(255,0,0,0.3)';
+    ctx.beginPath();
+    ctx.moveTo(computerAI.x, computerAI.y);
+    ctx.lineTo(soccerBall.x, soccerBall.y);
+    ctx.stroke();
+
     drawCircle(humanPlayer);
     drawCircle(computerAI);
     drawCircle(soccerBall,true);
@@ -214,6 +273,21 @@ function draw(){
         ctx.font='40px sans-serif';
         ctx.textAlign='center';
         ctx.fillText(`Kickoff in ${kickoffTimer}`, canvas.width/2, canvas.height/2);
+
+        ctx.beginPath();
+        ctx.arc(canvas.width/2, canvas.height/2+50, 30, -Math.PI/2, -Math.PI/2 + (3-kickoffTimer)/3*2*Math.PI);
+        ctx.strokeStyle='white';
+        ctx.lineWidth=4;
+        ctx.stroke();
+    }
+
+    if(isGameOver){
+        ctx.fillStyle='yellow';
+        ctx.font='50px sans-serif';
+        ctx.textAlign='center';
+        ctx.fillText('Game Over', canvas.width/2, canvas.height/2);
+        ctx.font='20px sans-serif';
+        ctx.fillText('Click Restart to play again', canvas.width/2, canvas.height/2+40);
     }
 }
 
